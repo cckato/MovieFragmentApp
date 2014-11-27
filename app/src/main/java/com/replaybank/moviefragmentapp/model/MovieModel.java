@@ -1,8 +1,12 @@
 package com.replaybank.moviefragmentapp.model;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.replaybank.moviefragmentapp.common.BusHolder;
 import com.replaybank.moviefragmentapp.entity.Movie;
@@ -37,43 +41,41 @@ public class MovieModel {
             requestQueue.start();
         }
 
-//        JsonArrayRequest request = new JsonArrayRequest(HttpRoutes.MOVIES_PATH,
-//                new Response.Listener<JSONArray>() {
-//                    @Override
-//                    public void onResponse(JSONArray response) {
-//                        movies = new ArrayList<Movie>();
-//                        try {
-//                            for (int i=0; i<response.length(); i++) {
-//                                JSONObject obj = response.getJSONObject(i);
-//                            }
-//
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                },
-//                new Response.ErrorListener() {
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-//
-//                    }
-//                });
-//        requestQueue.add(request);
+        JsonArrayRequest request = new JsonArrayRequest(HttpRoutes.MOVIES_PATH,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        movies = new ArrayList<Movie>();
+                        try {
+                            for (int i=0; i<response.length(); i++) {
+                                JSONObject obj = response.getJSONObject(i);
+                                Movie movie = new Movie();
+                                movie.setId(obj.getInt("id"));
+                                movie.setName(obj.getString("name"));
+                                movie.setIntroduction(obj.getString("introduction"));
+                                movie.setBodyUrl(obj.getString("body_url"));
+                                movie.setThumbUrl(obj.getString("thumb_url"));
+                                movies.add(movie);
+                                movieCache.put(movie.getId(), movie);
+                            }
+                            BusHolder.get().post(this);
+                        } catch (JSONException e) {
+                            Log.e("COCOABU", "JSONのパースに失敗したよ");
+                            e.printStackTrace();
+                            BusHolder.get().post(this);
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("COCOABU", "Httpリクエストに失敗したよ");
+                        movies = new ArrayList<Movie>();
+                        BusHolder.get().post(this);
+                    }
+                });
+        requestQueue.add(request);
 
-
-        movies = new ArrayList<Movie>();
-        for (int i = 0; i < 20; i++) {
-            Movie movie = new Movie();
-            movie.setId(i);
-            movie.setName("動画その" + i);
-            movie.setIntroduction("投稿者コメントその" + i);
-            movie.setBodyUrl("http://ec2-54-65-87-57.ap-northeast-1.compute.amazonaws.com/gochiusa/low.m3u8");
-            movies.add(movie);
-            movieCache.put(movie.getId(), movie);
-        }
-
-        //更新を通知
-        BusHolder.get().post(this);
     }
 
     public Movie getMovie(int id) {
