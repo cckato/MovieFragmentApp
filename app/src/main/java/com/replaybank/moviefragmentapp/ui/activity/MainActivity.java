@@ -73,7 +73,7 @@ public class MainActivity extends ActionBarActivity {
     private void refreshMovies() {
         ArrayList<Movie> movies = movieModel.getMovies();
         if (movies == null) {
-            movieModel.fetchMovies();
+            movieModel.fetchMovies(this);
         } else {
             Log.i("COCOABU", "セットするよ");
             adapter.clear();

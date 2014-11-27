@@ -1,2 +1,3 @@
-include ':app', ':volley'
-project(':volley').projectDir = new File('modules/volley')
+include ':app'
+include ':modules:volley'
+//project(':volley').projectDir = new File('modules/volley')
